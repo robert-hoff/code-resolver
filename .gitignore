@@ -8,15 +8,17 @@
 /target
 /log
 
+# ignore source files in the dev and base folder (default package)
+/src/main/java/dev/*.java
+/src/main/java/*.java
+
 # properties file
 app.properties
+app.auto.properties
 
-
-# logback configs
+# Logback configs (see https://logback.qos.ch)
 /src/main/resources/logback.xml
 /src/main/resources/logback-test.xml
-
-
 
 
 

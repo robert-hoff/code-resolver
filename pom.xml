@@ -2,8 +2,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-<name>Code Resolver</name>
-<!--~-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<name>Code Resolver Tool</name>
 <groupId>hoffinc</groupId>
 <artifactId>code-resolver</artifactId>
 <version>1.0</version>
@@ -14,20 +13,28 @@
 </developers>
 
 <properties>
-<!--~-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
     <java.version>1.8</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 </properties>
-<dependencies>
+
+
 <!--~-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<dependencies>
+    <!-- JavaParser
+         https://www.javadoc.io/doc/com.github.javaparser/javaparser-core/latest/index.html
+         JavaSymbolSolver
+         https://www.javadoc.io/doc/com.github.javaparser/java-symbol-solver-core/latest/index.html
+    -->
+    <dependency>
+      <groupId>com.github.javaparser</groupId>
+      <artifactId>javaparser-symbol-solver-core</artifactId>
+      <version>3.16.1</version>
+    </dependency>
 
-
-
-
-
-
-    <!-- logging -->
+    <!-- Logback
+         http://logback.qos.ch/manual/configuration.html
+    -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -40,9 +47,7 @@
     </dependency>
 
 
-
-<!-- test scope -->
-<!--~-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <!-- test scope -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -53,6 +58,7 @@
 </dependencies>
 
 
+<!--~-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 <build>
 <plugins>
 
@@ -77,17 +83,17 @@
       <artifactId>exec-maven-plugin</artifactId>
       <version>1.2.1</version>
       <configuration>
-        <mainClass>hello.HelloClass</mainClass>
+        <mainClass>resolvertool.DemoCodeCompiler</mainClass>
       </configuration>
     </plugin>
-
-
 
 </plugins>
 </build>
 
-
 </project>
+
+
+
 
 
 

@@ -1,0 +1,29 @@
+# Default properties
+
+
+# package name of the dev target (needs to correspond with the DIR_DEV_TARGET setting)
+# E.g. src/main/java/myfiles/dev would have the package name "myfiles.dev"
+PACKAGE_DEV_TARGET =       dev
+
+# The directory you develop files in. CodeResolverUI will look for source files here
+DIR_DEV_TARGET =           src/main/java/dev
+
+# The package name of your external methods
+PACKAGE_METHODS =          extmethods
+
+# The external-methods source directory
+DIR_METHODS =              src/main/java/extmethods
+
+# The package name of your external classes
+PACKAGE_OBJECTS =          extclasses
+
+# The external-objects source directory
+DIR_OBJECTS =              src/main/java/extclasses
+
+# Template directory (where Template.java and TemplateInteractive.java are)
+PACKAGE_TEMPLATE =         templates
+DIR_TEMPLATE =             src/main/java/templates
+
+
+
+
