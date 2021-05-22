@@ -1,0 +1,22 @@
+# Ignore all dotfiles
+# E.g. .settings, .history, .idea, .idea_modules, .classpath
+.*
+
+# but don't ignore .gitignore
+!.gitignore
+
+/target
+/log
+
+# properties file
+app.properties
+
+
+# logback configs
+/src/main/resources/logback.xml
+/src/main/resources/logback-test.xml
+
+
+
+
+
