@@ -30,7 +30,6 @@ import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.Statement;
-import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 
@@ -42,72 +41,31 @@ import com.github.javaparser.resolution.types.ResolvedReferenceType;
  * Java Symbol Solver API   https://www.javadoc.io/doc/com.github.javaparser/java-symbol-solver-core/latest/index.html
  *
  *
+ * Resolver steps
+ * --------------
+ * 1. Converts some features of the the source into a format suitable for Codeforces remote submission.
+ *    I.e. removes the usage of reading from local files or local variables (the INPUT variable).
+ *    And checks for System.getProperty("ONLINE_JUDGE")
  *
+ * 2. Checks for any unused variables. The unused variables are removed from the source before the next step
  *
- * Term
- * -----
- * Scope name                     PR, STR, IN, ..            classes belonging to extmethods.*
- *
- * External method                Methods belonging to extmethods.* packages. They are all static. (note external method calls may
- *                                be reference new additional external methods - see 'nested method call')
- *
- * External object                Objects defined in extmethods.*. They can be used in various ways
- *                                (i) instantiated locally (ii) extended locally (iii) as part of an external method
- *                                call. Note if an object is instantiated in an external method the object *must* be returned
- *                                to the compilation target.
- *                                The resolver will fail if an external object is instantiated and not returned.
- *
- * Initial source file            The source file that I'm working in and want to convert to a form suitable for submission
- *                                Also referred to as 'compilation target'
- *
- * Compilation target             The source file and compilation unit as it goes through stages in the compilation pipeline
- *
- * Compilation result             The end result written to the Java base directory (this directory is convenient because we
- *                                don't want a package declaration). The compilation result is _compatible_ with the Codeforces
- *                                online judge.
- *
- * External file                  Any file that is external to the compilation target. The way "external" is used includes files that
- *                                reside in the local project, so i.e. external only to the initial source file
- *
- * External method call           In some contexts 'external method calls' are taken to mean calls made from the *initial source file* only,
- *                                in the CodeResolverMethodSource class these form a basis that are resolved further; they are
- *                                checked for nested method calls
- *
- * Nested method call             Calls to external method from another external method (to arbitrary depth)
- *
- *
- *
- * Approach
- * --------
- * 1. Convert the format that I'm working on into a format that is suitable for remote submission (competition judgement).
- *    I.e. remove the usage of reading from local files or local variables (the INPUT variable).
- *    And checks for System.getProperty("ONLINE_JUDGE") (changes the input-stream to System.in)
- *
- * 2. Remove unused variables and unused imports (kind of optional step). The unused variables are removed from the compilation
- *    unit before being passed to step 3.
- *
- * 3. Analyse the compilation target and external calls to identify all external dependencies. External dependencies are either
+ * 3. Analyses the source and external calls to identify external dependencies. External dependencies are either
  *    external static methods defined in the extmethods.* package OR external objects defined in extclasses.*
  *
- * 4. Rewrite the compilation target so that all external dependencies are written into the local class. The analysis in step 3
- *    should be fully completed before this step is performed.
+ * 4. Rewrites the compilation target so that all external dependencies are written into the local class.
  *
  *
  * Main features
- * ------------
+ * -------------
  * - Create public static methods under any classname in the extmethods.* package. They can call each other without bounds.
  *   (that is, to other members in the extmethods.* package, but not to any other external dependency, and *not* to
- *   extclasses.* either)
+ *   extclasses.*)
  * - Create classes in the extclasses.* package. Unlike methods external classes _cannot_ reference any further external members
- *   (but they can use any declarations local to themselves such as nested classes and field-variables)
  *
  *
  * Notes
  * --------
- *  - Resolver keeps any static or non-static field-level method declarations (doesn't check if they are used/unused)
- *  - Some checking is performed on unused variables. The resolver will remove unused static or non-static
- *    field variables (declared immediately below the class-level)
- *
+ *  - Resolver keeps unused static or non-static field-level method declarations (checking on these hasn't been implemented)
  *
  *
  * Limitations
@@ -124,6 +82,38 @@ import com.github.javaparser.resolution.types.ResolvedReferenceType;
  *
  *  - All external methods must be defined in the same directory and belong to the same package
  *  - All external classes must be defined in the same directory and belong to the same package
+ *
+ *
+ *
+ * Term
+ * -----
+ * Scope name                     PR, STR, IN, ..            classes belonging to extmethods.*
+ *
+ * External method                Methods belonging to extmethods.* packages. They are all static. (note external method calls may
+ *                                be reference new additional external methods - see 'nested method call')
+ *
+ * External object                Objects defined in extmethods.*. They can be used in various ways
+ *                                (i) instantiated locally (ii) extended locally (iii) as part of an external method
+ *                                call. Note if an object is instantiated in an external method the object *must* be returned
+ *                                to the compilation target.
+ *                                The resolver will fail if an external object is instantiated and not returned.
+ *
+ * Initial source                 The starting source file in the dev folder to be converted to a form suitable for submission
+ *
+ * Target source                  The source (or compilation unit) as it goes through stages in the pipeline
+ *                                The end result is written to the Java base directory (this directory is convenient because we
+ *                                don't want a package declaration). The compilation result is _compatible_ with the Codeforces
+ *                                online judge.
+ *
+ * External file                  Any file that is external to the compilation target. The way "external" is used includes files that
+ *                                reside in the local project, so i.e. external only to the initial source file
+ *
+ * External method call           In some contexts 'external method calls' are taken to mean calls made from the *initial source file* only,
+ *                                in the CodeResolverMethodSource class these form a basis that are resolved further; they are
+ *                                checked for nested method calls
+ *
+ * Nested method call             Calls to external method from another external method (to arbitrary depth)
+ *
  *
  *
  *
@@ -169,11 +159,12 @@ public class CodeResolver {
     compileTarget(true, false);
   }
   public void compileTarget(boolean write, boolean showCompilation) {
+    success = false;
 
     // initial regex stuff
     CompilationUnit cuNew = CodeResolver.performInitialConditioning(cuOriginal, CLASSNAME);
 
-    // remove unused fields (DO check this method in more detail) (Note this method has side effects on the cuNew argument
+    // remove unused fields (alters cuNew)
     CodeResolver.removeUnusedFields(cuNew, CLASSNAME);
     CodeResolverMethodSource csr = new CodeResolverMethodSource(cuNew);
 
@@ -184,9 +175,8 @@ public class CodeResolver {
     csr.performMethodCallsRewrite();
     insertMethodsIntoCompilationTarget(cuNew, csr.getMethodDeclarationsAsList(), CLASSNAME);
 
-    // check and tidy imports
-    Set<String> staticImports = scanForImports(cuNew, CLASSNAME);
-    insertImports(cuNew, staticImports);
+    // tidy imports
+    insertImports(cuNew);
 
     // insert external classes
     insertClassesIntoCompilationTarget(cuNew, externalClasses, CLASSNAME);
@@ -203,8 +193,6 @@ public class CodeResolver {
     }
 
     success = true;
-
-    // System.err.println(cuNew);
   }
 
 
@@ -291,7 +279,6 @@ public class CodeResolver {
   }
 
 
-
   public static MethodDeclaration parseCopyMethodDeclaration(MethodDeclaration method) {
     MethodDeclaration methodNew = StaticJavaParser.parseMethodDeclaration(method.toString());
     return methodNew;
@@ -303,7 +290,6 @@ public class CodeResolver {
     CompilationUnit cuNew = StaticJavaParser.parse(cu.toString());
     return cuNew;
   }
-
 
 
   /*
@@ -360,7 +346,6 @@ public class CodeResolver {
     newMainMethod.setBody(block_new);
     return newMainMethod;
   }
-
 
 
   /*
@@ -563,33 +548,6 @@ public class CodeResolver {
 
 
 
-  // DO (check over)
-  // Currently I only need this to preserve the static import to java.lang.Math.*
-  private static Set<String> scanForImports(CompilationUnit cu, String CLASSNAME) {
-    Set<String> staticImports = new HashSet<>();
-
-    ClassOrInterfaceDeclaration classPrimary = cu.getClassByName(CLASSNAME).get();
-    boolean mathImportFound = false;
-    for (MethodCallExpr exp : classPrimary.findAll(MethodCallExpr.class)) {
-      try {
-        ResolvedMethodDeclaration resolvedMethod = exp.resolve();
-        if (resolvedMethod.getPackageName().equals("java.lang") && resolvedMethod.getClassName().equals("Math")) {
-          if (!mathImportFound) {
-            // class_static_imports.add(resolved_method.getQualifiedName());
-            staticImports.add(resolvedMethod.getPackageName()+".Math");
-            mathImportFound = true;
-          }
-        }
-      } catch (UnsolvedSymbolException e) {
-        e.printStackTrace();
-        System.err.println("ERROR! in scanForImports(..) method");
-      }
-    }
-
-    return staticImports;
-  }
-
-
 
   private static void insertClassesIntoCompilationTarget(CompilationUnit cu, List<ClassOrInterfaceDeclaration> externalClasses, String CLASSNAME) {
 
@@ -611,20 +569,40 @@ public class CodeResolver {
   }
 
 
+
   /*
-   * Always import java.io.* and java.util.*
-   * and import static maths classes if any calls detected
+   * Keep Java imports
+   * may drop static import to java.lang.Math if not used
+   *
    */
-  private static void insertImports(CompilationUnit cu, Set<String> staticImports) {
+  private static void insertImports(CompilationUnit cu) {
+    boolean keepMathsImport = checkMathsImport(cu);
     NodeList<ImportDeclaration> importsNew = new NodeList<>();
-    importsNew.add(new ImportDeclaration("java.io", false, true));
-    importsNew.add(new ImportDeclaration("java.util", false, true));
-    for (String importStr : staticImports) {
-      ImportDeclaration importDecl = new ImportDeclaration(importStr, true, true);
-      importsNew.add(importDecl);
+    for (ImportDeclaration importDeclaration : cu.getImports()) {
+      String importName = importDeclaration.getNameAsString();
+      if (importName.length()==14 && importName.substring(0, 14).equals("java.lang.Math") && importDeclaration.isStatic()) {
+        if (keepMathsImport) {
+          importsNew.add(importDeclaration);
+        }
+        continue;
+      }
+      if (importName.length()>5 && importName.substring(0, 5).equals("java.")) {
+        importsNew.add(importDeclaration);
+      }
     }
     cu.setImports(importsNew);
   }
+
+  private static boolean checkMathsImport(CompilationUnit cu) {
+    for (MethodCallExpr exp : cu.findAll(MethodCallExpr.class)) {
+      ResolvedMethodDeclaration resolvedMethod = exp.resolve();
+      if (resolvedMethod.getPackageName().equals("java.lang") && resolvedMethod.getClassName().equals("Math")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 
 
   /*

@@ -39,7 +39,7 @@ public class DemoCodeCompiler {
   static void testAllDemoInputs() {
     boolean writeToFile = true;
     boolean showCompilation = false;
-    String[] compilationTargets = {"A01","A02","A03","A04","A05","A06"};
+    String[] compilationTargets = {"A01","A02","A03","A04","A05","A06","A07"};
     long startTime;
     for (String name : compilationTargets) {
       startTime = java.lang.System.currentTimeMillis();

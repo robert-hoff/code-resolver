@@ -9,7 +9,7 @@
 /log
 
 # ignore source files in the dev and base folder (default package)
-/src/main/java/dev/*.java
+/src/main/java/dev
 /src/main/java/*.java
 
 # properties file

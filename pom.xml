@@ -5,7 +5,7 @@
 <name>Code Resolver Tool</name>
 <groupId>hoffinc</groupId>
 <artifactId>code-resolver</artifactId>
-<version>1.0</version>
+<version>0.1</version>
 <packaging>jar</packaging>
 
 <developers>

@@ -1,32 +1,33 @@
 
 
 # Java Code Resolver Tool
-Resolves external dependecies on a target source file, combining sources into a single class.
+This tool is used for Codeforces competitions. Resolves external dependencies on a target Java source file,
+combining sources into a single class suitable for submission.
 
 
 ## Installation
-Import project in Eclipse as 'Existing Maven Project'
+Download the project into any directory. Import the project in Eclipse as 'Existing Maven Project'
 
 
 ## Usage
-Run MakeTemplates to set up compilation targets in `/dev`
+Run `MakeTemplates` to set up source files in `/dev`. Solve Codeforces problems in these files.
 
-Run CodeResolverUI to resolve source files.
+Run `CodeResolverUI` to resolve and package source files into a format suitable for submission.
+The target result is written to the Java base folder `src/main/java` and will not belong to any package.
+The source is also copied to clipboard.
 
 
 ## Features
 Call static methods in `extmethods.*` and instantiate classes from `extclasses.*`
 
 Create new static methods in `extmethods.*` (nested methods calls are supported)
-Calls to methods from the target source file will be resolved.
 
-Create classes in `extclasses.*` (be aware nested calls not supported for classes)
-Objects declarations from the target source file will be resolved.
+Create new custom classes in `extclasses.*` (be aware nested calls not supported for classes)
 
 
 ## Logger
 To configure the logger copy `/src/main/resources/logback-template.xml` into `/src/main/resources/logback.xml`
-(logback.xml contains the Logback configuration, see http://logback.qos.ch/manual/configuration.html)
+(for details, see http://logback.qos.ch/manual/configuration.html)
 
 
 
