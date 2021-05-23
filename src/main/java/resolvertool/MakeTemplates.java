@@ -11,15 +11,6 @@ import java.util.TreeSet;
 
 public class MakeTemplates {
 
-  // change MAKE_CLASSES to influence the templates created
-  // interactive templates are not supported (but there is a template available)
-
-  static String MAKE_CLASSES = "A";                     // <-- creates A.java in /src/main/java/dev
-  // static String MAKE_CLASSES = "B-J";
-  // static String MAKE_CLASSES = "A-F";
-  // static String MAKE_CLASSES = "A_1";
-  // static String MAKE_CLASSES = "A-B,C_1,C_2,D-F";
-
 
   final static String DIR_TEMPLATE = CodeResolverConfiguration.readProperty("DIR_TEMPLATE");
   final static String PACKAGE_TEMPLATE = CodeResolverConfiguration.readProperty("PACKAGE_TEMPLATE");
@@ -27,14 +18,26 @@ public class MakeTemplates {
   final static String PACKAGE_DEV_TARGET = CodeResolverConfiguration.readProperty("PACKAGE_DEV_TARGET");
 
 
-  public static void main(String[] args) {
 
+  /*
+   * value of classNames              result (written to /dev)
+   * ------------------------------------------------------------------
+   * A                                A.java
+   * A_2                              A_2.java
+   * A-C                              A.java, B.java, C.java
+   * A,E,F                            A.java, E.java, F.java
+   *
+   * Also works
+   * A-B,C_1,D-F
+   *
+   */
+  public MakeTemplates(String classNames) {
     File file = new File(DIR_DEV_TARGET);
     file.mkdirs();
     String FILEPATH = String.format("%s/Template.java", DIR_TEMPLATE);
     Set<String> class_names = new TreeSet<>();
 
-    String[] classes1 = MAKE_CLASSES.split(",");
+    String[] classes1 = classNames.split(",");
     for (String s : classes1) {
       if (s.indexOf('-') > 0) {
         String str1 = s.substring(0, s.indexOf('-'));
@@ -72,10 +75,10 @@ public class MakeTemplates {
 
       String file_content = makeTemplateFile(FILEPATH, target_classname);
       writeToFile(file_content, file_path);
-
-      //      System.out.println(file_content);
     }
   }
+
+
 
 
   static void writeToFile(String fileContent, String filePath) {

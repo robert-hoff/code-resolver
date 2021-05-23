@@ -18,10 +18,10 @@ import com.github.javaparser.ast.CompilationUnit;
 public class CodeResolverUI extends JFrame {
 
 
-  static final String SRC_FOLDER = CodeResolverConfiguration.readProperty("DIR_DEV_TARGET");
+  static final String DIR_DEV_TARGET = CodeResolverConfiguration.readProperty("DIR_DEV_TARGET");
 
   public static void main(String[] args) {
-    List<String> classNames = getClassNamesSourceFolder(SRC_FOLDER);
+    List<String> classNames = getClassNamesSourceFolder(DIR_DEV_TARGET);
     new CodeResolverUI(classNames);
   }
 
@@ -138,9 +138,7 @@ public class CodeResolverUI extends JFrame {
     }
   }
 
-
   class CanvasPanel extends JPanel {
-    private static final long serialVersionUID = -5671408750045486992L;
     public CanvasPanel(int width, int height) {
       setBackground(Color.WHITE);
       setBorder(null);
@@ -173,7 +171,7 @@ public class CodeResolverUI extends JFrame {
         boolean success = false;
         try {
           // * Compile target class *
-          CompilationUnit cu = CodeResolverConfiguration.getCompilationUnit(SRC_FOLDER, target_classname);
+          CompilationUnit cu = CodeResolverConfiguration.getCompilationUnit(DIR_DEV_TARGET, target_classname);
           CodeResolver cc = new CodeResolver(cu);
           cc.compileTarget();
           success = cc.success;

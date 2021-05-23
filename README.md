@@ -10,7 +10,7 @@ Download the project into any directory. Import the project in Eclipse as 'Exist
 
 
 ## Usage
-Run `MakeTemplates` to set up source files in `/dev`. Solve Codeforces problems in these files.
+Run `MakeTemplatesUI` to set up source files in `/dev`. Solve Codeforces problems in these files.
 
 Run `CodeResolverUI` to resolve and package source files into a format suitable for submission.
 The target result is written to the Java base folder `src/main/java` and will not belong to any package.
